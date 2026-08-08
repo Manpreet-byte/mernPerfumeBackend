@@ -1,0 +1,2 @@
+import { Router } from 'express'; import * as controller from '../controllers/productController.js'; import { protect, adminOnly } from '../middleware/auth.js'; import { validate, productRules } from '../validators/index.js';
+const router = Router(); router.route('/').get(controller.listProducts).post(protect, adminOnly, validate(productRules), controller.createProduct); router.route('/:id').get(controller.getProduct).put(protect, adminOnly, validate(productRules), controller.updateProduct).delete(protect, adminOnly, controller.deleteProduct); export default router;
