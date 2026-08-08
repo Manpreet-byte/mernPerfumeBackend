@@ -57,4 +57,3 @@ app.use(notFound);
 app.use(errorHandler);
 
 export default app;
-const app = express(); app.use(cors({ origin: process.env.CLIENT_URL?.split(',') || '*', credentials: true })); app.use(express.json()); app.use(morgan('dev')); app.get('/api/health', (req, res) => res.json({ status: 'ok' })); app.use('/api/auth', authRoutes); app.use('/api/products', productRoutes); app.use('/api/categories', categoryRoutes); app.use('/api/cart', cart); app.use('/api/wishlist', wishlist); app.use('/api/orders', orders); app.use('/api/payments', paymentRoutes); app.use('/api/reviews', reviews); app.use('/api/coupons', couponRoutes); app.use('/api/admin', adminRoutes); app.use(notFound); app.use(errorHandler); export default app;
