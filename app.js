@@ -22,11 +22,17 @@ const corsOptions = {
 		// Allow requests with no origin (e.g., mobile apps, curl, Postman)
 		if (!origin) return callback(null, true);
 
-		if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+		// Allow explicit list, wildcard '*', or any vercel.app subdomain (previews)
+		if (
+			allowedOrigins.includes('*') ||
+			allowedOrigins.includes(origin) ||
+			/\.vercel\.app$/.test(origin)
+		) {
 			return callback(null, true);
 		}
 
-		return callback(new Error('CORS origin not allowed'));
+		// Deny CORS without throwing to avoid 500 responses for preflight
+		return callback(null, false);
 	},
 	credentials: true,
 	methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
