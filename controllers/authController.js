@@ -57,6 +57,8 @@ export const googleStart = async (req, res) => {
 		return res.status(500).json({ message: 'Google OAuth is not configured.' });
 	}
 
+	const returnTo = req.query.returnTo === '/signup' ? '/signup' : '/login';
+
 	const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
 	authUrl.searchParams.set('client_id', clientId);
 	authUrl.searchParams.set('redirect_uri', redirectUri);
@@ -64,6 +66,7 @@ export const googleStart = async (req, res) => {
 	authUrl.searchParams.set('scope', 'openid email profile');
 	authUrl.searchParams.set('access_type', 'online');
 	authUrl.searchParams.set('prompt', 'consent');
+	authUrl.searchParams.set('state', returnTo);
 
 	res.redirect(authUrl.toString());
 };
@@ -130,7 +133,8 @@ export const googleCallback = async (req, res) => {
 		}
 
 		const token = createToken(user._id);
-		res.redirect(`${clientBase}/login?token=${encodeURIComponent(token)}&provider=google`);
+		const returnTo = req.query.state === '/signup' ? '/signup' : '/login';
+		res.redirect(`${clientBase}${returnTo}?token=${encodeURIComponent(token)}&provider=google`);
 	} catch (error) {
 		res.redirect(`${clientBase}/login?googleError=failed`);
 	}
