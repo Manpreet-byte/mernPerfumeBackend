@@ -8,7 +8,22 @@ export const removeCart = async (req, res) => { const cart = await Cart.findOneA
 export const getWishlist = async (req, res) => res.json((await User.findById(req.user._id).populate('wishlist')).wishlist);
 export const addWishlist = async (req, res) => { const user = await User.findByIdAndUpdate(req.user._id, { $addToSet: { wishlist: req.body.product } }, { new: true }).populate('wishlist'); res.json(user.wishlist); };
 export const removeWishlist = async (req, res) => { const user = await User.findByIdAndUpdate(req.user._id, { $pull: { wishlist: req.params.id } }, { new: true }).populate('wishlist'); res.json(user.wishlist); };
-export const getOrders = async (req, res) => { const filter = req.user.role === 'admin' ? {} : { user: req.user._id }; res.json(await Order.find(filter).populate('user', 'name email').populate('products.productId').sort('-createdAt')); };
+export const getOrders = async (req, res) => {
+	const filter = req.user.role === 'admin' ? {} : { user: req.user._id };
+	const orders = await Order.find(filter).sort('-createdAt').lean();
+	const productIds = [...new Set(orders.flatMap((order) => (order.products || []).map((item) => item?.productId).filter((productId) => mongoose.Types.ObjectId.isValid(productId)).map((productId) => productId.toString())))];
+	const products = await Product.find({ _id: { $in: productIds } }).select('name slug images brand price discountPrice').lean();
+	const productMap = new Map(products.map((product) => [product._id.toString(), product]));
+	const hydratedOrders = orders.map((order) => ({
+		...order,
+		products: (order.products || []).map((item) => {
+			const productId = item?.productId;
+			const product = mongoose.Types.ObjectId.isValid(productId) ? productMap.get(productId.toString()) : null;
+			return product ? { ...item, productId: product } : null;
+		}).filter(Boolean),
+	}));
+	res.json(hydratedOrders);
+};
 export const createOrder = async (req, res) => {
 	try {
 		const { products = [], couponCode, ...rest } = req.body;
