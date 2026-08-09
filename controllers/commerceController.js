@@ -26,7 +26,9 @@ export const getOrders = async (req, res) => {
 };
 export const createOrder = async (req, res) => {
 	try {
-		const { products = [], couponCode, ...rest } = req.body;
+		const payload = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+		const products = payload.products || payload.items || payload.orderItems || [];
+		const { couponCode, ...rest } = payload;
 		if (!products.length) return res.status(400).json({ message: 'An order requires at least one product' });
 
 		const normalizedProducts = await Promise.all(products.map(async (item) => {
