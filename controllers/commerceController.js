@@ -30,13 +30,16 @@ export const createOrder = async (req, res) => {
 		if (!products.length) return res.status(400).json({ message: 'An order requires at least one product' });
 
 		const normalizedProducts = await Promise.all(products.map(async (item) => {
+			if (!mongoose.Types.ObjectId.isValid(item.productId)) return null;
 			const product = await Product.findById(item.productId);
 			if (!product) return null;
 			const price = product.discountPrice ?? product.price;
 			return { productId: product._id, quantity: Math.max(1, Number(item.quantity) || 1), price };
 		}));
 
-		if (normalizedProducts.some((item) => item == null)) return res.status(404).json({ message: 'One or more products were not found' });
+		if (normalizedProducts.some((item) => item == null)) {
+			return res.status(400).json({ message: 'Your cart contains an outdated product reference. Please refresh your cart and try again.' });
+		}
 
 		const subtotal = normalizedProducts.reduce((total, item) => total + (item.price * item.quantity), 0);
 		let discountAmount = 0;
