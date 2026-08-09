@@ -7,8 +7,11 @@ const present = (user) => ({
 	name: user.name,
 	email: user.email,
 	role: user.role,
+	authProvider: user.authProvider,
 	phone: user.phone,
-	address: user.address,
+	addresses: user.addresses,
+	createdAt: user.createdAt,
+	updatedAt: user.updatedAt,
 });
 
 const getClientBase = () => {
